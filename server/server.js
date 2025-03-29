@@ -9,6 +9,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const trainerRoutes = require('./routes/trainerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes'); // Ensure this is included
+const courseRoutes = require('./routes/courseRoutes'); // Ensure this is included
+const studentResourceRoutes = require('./routes/studentResourceRoutes');
+
+
 
 
 // Load environment variables from parent .env
@@ -38,7 +42,10 @@ app.get('/', (req, res) => {
 app.use('/api/admin', adminRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/student', studentRoutes);
-app.use("/api", assignmentRoutes); // Ensure this is included
+app.use('/api', assignmentRoutes); // Ensure this is included
+app.use('/api', courseRoutes); // Ensure this is included
+app.use('/api/student', studentResourceRoutes);
+
 
 
 // ✅ Check MongoDB connection status

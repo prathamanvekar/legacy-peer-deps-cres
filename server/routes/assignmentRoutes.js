@@ -3,6 +3,6 @@ const { getSubmissions } = require("../controllers/assignmentController"); // âœ
 
 const router = express.Router();
 
-router.get("/submissions/:courseId/:assignmentTitle", getSubmissions); // âœ… Use the correct function
+router.get("/submissions/:courseId/:assignmentId", getSubmissions);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const Student = require("../models/Student");
 const Course = require("../models/Course");
-const Assignment = require("../models/assignment");
+const Assignment = require("../models/Assignment");
 const StudentResource = require("../models/StudentResource");
 
 // Function to access resources in enrolled courses
@@ -24,14 +24,19 @@ exports.addStudent = async (req, res) => {
             return res.status(400).json({ error: "All fields are required" });
         }
 
-        // Check if student already exists
         const existingStudent = await Student.findOne({ email });
         if (existingStudent) {
             return res.status(400).json({ error: "Student already exists" });
         }
 
-        // Create new student
-        const newStudent = new Student({ name, email, password });
+        // 👇 Now includes password
+        const newStudent = new Student({
+            name,
+            email,
+            password,
+            enrolledCourses: [] // ✅ Initialize enrolledCourses as empty
+        });
+
         await newStudent.save();
 
         res.status(201).json({ message: "Student added successfully", student: newStudent });
@@ -40,8 +45,10 @@ exports.addStudent = async (req, res) => {
     }
 };
 
+
 // Function to join a course using email instead of studentId
 const mongoose = require("mongoose");
+
 exports.joinCourse = async (req, res) => {
     try {
         const { email, courseId } = req.body;
@@ -50,15 +57,12 @@ exports.joinCourse = async (req, res) => {
             return res.status(400).json({ error: "Student email and course ID are required" });
         }
 
-        // 🔹 Find the course using courseId instead of _id
+        // 🔹 Find the course using courseId
         const course = await Course.findOne({ courseId });
 
         if (!course) {
             return res.status(404).json({ error: "Course not found" });
         }
-
-        // 🔹 Use the actual MongoDB _id
-        const courseObjectId = course._id;
 
         // 🔹 Find the student by email
         const student = await Student.findOne({ email });
@@ -66,19 +70,29 @@ exports.joinCourse = async (req, res) => {
             return res.status(404).json({ error: `No student found with email: ${email}` });
         }
 
-        // Ensure the 'courses' field is an array
-        if (!Array.isArray(student.courses)) {
-            student.courses = [];
+        // Ensure the 'enrolledCourses' field is an array
+        if (!Array.isArray(student.enrolledCourses)) {
+            student.enrolledCourses = [];
         }
 
         // Check if already enrolled
-        if (student.courses.includes(courseObjectId)) {
+        if (student.enrolledCourses.includes(course.courseId)) {
             return res.status(400).json({ error: "Student is already enrolled in this course" });
         }
 
-        // 🔹 Add course _id to student courses
-        student.courses.push(courseObjectId);
+        // 🔹 Add courseId (string) to enrolledCourses
+        student.enrolledCourses.push(course.courseId);
         await student.save();
+
+        // ✅ Add student email to course's students array (avoid duplicates)
+        if (!Array.isArray(course.students)) {
+            course.students = [];
+        }
+
+        if (!course.students.includes(email)) {
+            course.students.push(email);
+            await course.save();
+        }
 
         res.status(200).json({ message: "Successfully joined course", student });
     } catch (error) {
@@ -92,10 +106,10 @@ exports.joinCourse = async (req, res) => {
 // Function to submit an assignment using courseId (like "COURSE-6588")
 exports.submitAssignment = async (req, res) => {
     try {
-        const { studentEmail, courseId, assignmentTitle, fileUrl } = req.body;
+        const { studentEmail, courseId, assignmentId, fileUrl } = req.body;
 
         // 🔹 Validate input
-        if (!studentEmail || !courseId || !assignmentTitle || !fileUrl) {
+        if (!studentEmail || !courseId || !assignmentId || !fileUrl) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -107,8 +121,8 @@ exports.submitAssignment = async (req, res) => {
         const course = await Course.findOne({ courseId });
         if (!course) return res.status(404).json({ error: "Course not found" });
 
-        // 🔹 Find the assignment
-        const assignment = await Assignment.findOne({ title: assignmentTitle, course: courseId });
+        // 🔹 Find the assignment using assignmentId and courseId
+        const assignment = await Assignment.findOne({ assignmentId, course: courseId });
         if (!assignment) return res.status(404).json({ error: "Assignment not found" });
 
         // 🔹 Check if already submitted using email

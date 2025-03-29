@@ -19,5 +19,5 @@ const assignmentSchema = new mongoose.Schema({
 
 
 // ✅ Prevent Overwriting Model
-const assignment = mongoose.models.Assignment || mongoose.model("assignment", assignmentSchema);
+const assignment = mongoose.models.assignment || mongoose.model("assignment", assignmentSchema);
 module.exports = assignment;

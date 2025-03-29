@@ -2,19 +2,26 @@ const Admin = require("../models/Admin");
 const Trainer = require("../models/Trainer");
 const Student = require("../models/Student");
 const Course = require("../models/Course");
-const Assignment = require("../models/assignment");
+const Assignment = require("../models/Assignment");
 
-// Add a trainer
 exports.addTrainer = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        const newTrainer = new Trainer({ name, email, password });
+        const { name, email, password, expertise } = req.body; // 🔄 Fix: include `expertise` in destructuring
+
+        if (!name || !email || !password || !expertise) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const newTrainer = new Trainer({ name, email, password, expertise });
         await newTrainer.save();
+
         res.status(201).json({ message: "Trainer added successfully", trainer: newTrainer });
     } catch (error) {
-        res.status(500).json({ error: "Error adding trainer" });
+        console.error("🔥 Error in addTrainer:", error); // 🔥 Show real error
+        res.status(500).json({ error: "Error adding trainer", details: error.message });
     }
 };
+
 
 // Get total number of students
 exports.getTotalStudents = async (req, res) => {

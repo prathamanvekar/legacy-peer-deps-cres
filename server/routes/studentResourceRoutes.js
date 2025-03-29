@@ -1,5 +1,5 @@
 const express = require("express");
-const { getResources } = require("../controllers/studentResourceController");
+const { getResources } = require("../controllers/studentResource.Controller");
 const router = express.Router();
 
 router.get("/:courseId/resources", getResources);

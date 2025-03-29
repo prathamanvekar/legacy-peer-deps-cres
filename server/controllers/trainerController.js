@@ -1,6 +1,6 @@
 const Trainer = require("../models/Trainer");
 const Course = require("../models/Course");
-const Assignment = require("../models/assignment");
+const Assignment = require("../models/Assignment");
 const Student = require("../models/Student");
 
 // ✅ Create a new course
@@ -51,25 +51,26 @@ exports.createCourse = async (req, res) => {
 // ✅ Upload a resource for a course
 exports.uploadResource = async (req, res) => {
     try {
-        const { courseId, resourceUrl } = req.body;
-
-        if (!courseId || !resourceUrl) {
-            return res.status(400).json({ error: "Course ID and resource URL are required" });
-        }
-
-        const course = await Course.findById(courseId);
-        if (!course) {
-            return res.status(404).json({ error: "Course not found" });
-        }
-
-        course.resources.push(resourceUrl);
-        await course.save();
-
-        res.status(200).json({ message: "Resource uploaded successfully", course });
+      const { courseId, resourceUrl } = req.body;
+  
+      if (!courseId || !resourceUrl) {
+        return res.status(400).json({ error: "Course ID and resource URL are required" });
+      }
+  
+      const course = await Course.findOne({ courseId }); // ✅ using courseId string
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+  
+      course.resources.push(resourceUrl); // ✅ add resource to array
+      await course.save();
+  
+      res.status(200).json({ message: "Resource uploaded successfully", course });
     } catch (error) {
-        res.status(500).json({ error: "Error uploading resource" });
+      console.error(error);
+      res.status(500).json({ error: "Error uploading resource" });
     }
-};
+  };
 
 // ✅ Create an assignment
 
@@ -132,20 +133,35 @@ exports.createAssignment = async (req, res) => {
 };
 
 
-
-// ✅ View registered students in trainer's courses
-exports.getRegisteredStudents = async (req, res) => {
+// ✅ View registered students in a specific course
+exports.getStudentCountForCourse = async (req, res) => {
     try {
-        const courses = await Course.find({ trainer: req.trainer.id });
-        const studentList = [];
+        const { courseId } = req.query;
 
-        for (const course of courses) {
-            const students = await Student.find({ enrolledCourses: course._id }, "name email");
-            studentList.push({ courseTitle: course.title, students });
+        if (!courseId) {
+            return res.status(400).json({ error: "Course ID is required in query params" });
         }
 
-        res.status(200).json(studentList);
+        const count = await Student.countDocuments({ enrolledCourses: courseId });
+
+        res.status(200).json({
+            courseId,
+            studentCount: count
+        });
     } catch (error) {
-        res.status(500).json({ error: "Error fetching registered students" });
+        console.error("Error counting students for course:", error);
+        res.status(500).json({ error: "Failed to count registered students", details: error.message });
+    }
+};
+
+
+// ✅ View total registered students
+exports.getTotalRegisteredStudents = async (req, res) => {
+    try {
+        const total = await Student.countDocuments({});
+        res.status(200).json({ totalRegisteredStudents: total });
+    } catch (error) {
+        console.error("Error getting total students:", error);
+        res.status(500).json({ error: "Error fetching total students", details: error.message });
     }
 };
