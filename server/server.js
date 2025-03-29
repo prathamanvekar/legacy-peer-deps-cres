@@ -1,62 +1,65 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose'); // ✅ Import mongoose
 const connectDB = require('./config/db');
 
+// ✅ Import Routes (Before Middleware)
+const adminRoutes = require('./routes/adminRoutes');
+const trainerRoutes = require('./routes/trainerRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+
 // Load environment variables from parent .env
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, './.env') });
 
 // Initialize express app
 const app = express();
 
-// Middleware to parse JSON
+// ✅ Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // URL-encoded middleware
 
-// Connect to MongoDB
-connectDB();
-
-// Import models
-const Student = require('./models/student');
-const Trainer = require('./models/trainer');
-const Admin = require('./models/admin');
-const Assignment = require('./models/assignment');
-const Course = require('./models/course');
-const StudentResource = require('./models/studentResource');
+// ✅ Connect to MongoDB
+connectDB()
+  .then(() => console.log('✅ MongoDB Connected Successfully'))
+  .catch((error) => {
+    console.error('❌ MongoDB Connection Failed:', error);
+    process.exit(1); // Exit process on DB connection failure
+  });
 
 // ✅ Test route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// ✅ Route to fetch all students
-app.get('/students', async (req, res) => {
-  try {
-    const students = await Student.find();
-    res.json(students);
-  } catch (err) {
-    res.status(500).json({ message: 'Server Error', error: err.message });
-  }
+// ✅ Define Routes
+app.use('/api/admin', adminRoutes);
+app.use('/api/trainer', trainerRoutes);
+app.use('/api/student', studentRoutes);
+
+// ✅ Check MongoDB connection status
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB Connection is Active');
 });
 
-// ✅ Optional: Seed all models to create collections (run once)
-const seedModels = async () => {
-  await Student.create({ name: 'Test Student', email: 'student@example.com' });
-  await Trainer.create({ name: 'Test Trainer', expertise: 'Web Dev' });
-  await Admin.create({ username: 'admin1', password: 'securepass' });
-  await Assignment.create({ title: 'Intro Assignment', description: 'First task' });
-  await Course.create({ title: 'Course 101', description: 'Basics of Web Dev' });
-  await StudentResource.create({ title: 'Lecture PDF', link: 'https://example.com/resource.pdf' });
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB Connection Error:', err);
+});
 
-  console.log('✅ Test data inserted');
-};
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️ MongoDB Disconnected');
+});
 
-// Uncomment to run seeding once, then comment it again
-// seedModels();
+// ✅ Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Server Error', error: err.message });
+});
 
-// Server port
+// ✅ Server Port
 const PORT = process.env.PORT || 5000;
 
-// Start server
+// ✅ Start Server
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
