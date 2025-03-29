@@ -8,6 +8,8 @@ const connectDB = require('./config/db');
 const adminRoutes = require('./routes/adminRoutes');
 const trainerRoutes = require('./routes/trainerRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const assignmentRoutes = require('./routes/assignmentRoutes'); // Ensure this is included
+
 
 // Load environment variables from parent .env
 dotenv.config({ path: path.resolve(__dirname, './.env') });
@@ -36,6 +38,8 @@ app.get('/', (req, res) => {
 app.use('/api/admin', adminRoutes);
 app.use('/api/trainer', trainerRoutes);
 app.use('/api/student', studentRoutes);
+app.use("/api", assignmentRoutes); // Ensure this is included
+
 
 // ✅ Check MongoDB connection status
 mongoose.connection.on('connected', () => {

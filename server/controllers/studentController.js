@@ -1,6 +1,6 @@
 const Student = require("../models/Student");
 const Course = require("../models/Course");
-const Assignment = require("../models/Assignment");
+const Assignment = require("../models/assignment");
 const StudentResource = require("../models/StudentResource");
 
 // Function to access resources in enrolled courses
@@ -88,22 +88,53 @@ exports.joinCourse = async (req, res) => {
 };
 
 
-// Function to submit an assignment
+// Function to submit an assignment using courseId (like "COURSE-6588")
+// Function to submit an assignment using courseId (like "COURSE-6588")
 exports.submitAssignment = async (req, res) => {
     try {
-        const { studentId, assignmentId } = req.body;
-        const assignment = await Assignment.findById(assignmentId);
+        const { studentEmail, courseId, assignmentTitle, fileUrl } = req.body;
+
+        // 🔹 Validate input
+        if (!studentEmail || !courseId || !assignmentTitle || !fileUrl) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // 🔹 Check if student exists
+        const student = await Student.findOne({ email: studentEmail });
+        if (!student) return res.status(404).json({ error: "Student not found" });
+
+        // 🔹 Check if course exists
+        const course = await Course.findOne({ courseId });
+        if (!course) return res.status(404).json({ error: "Course not found" });
+
+        // 🔹 Find the assignment
+        const assignment = await Assignment.findOne({ title: assignmentTitle, course: courseId });
         if (!assignment) return res.status(404).json({ error: "Assignment not found" });
 
-        assignment.submissions.push({ student: studentId, submitted: true });
+        // 🔹 Check if already submitted using email
+        const alreadySubmitted = assignment.submissions.some(
+            sub => sub.studentEmail === studentEmail
+        );
+        if (alreadySubmitted) {
+            return res.status(400).json({ error: "Assignment already submitted" });
+        }
+
+        // 🔹 Push the submission
+        assignment.submissions.push({
+            studentEmail,
+            fileUrl
+        });
+
         await assignment.save();
 
         res.status(200).json({ message: "Assignment submitted successfully" });
     } catch (error) {
         console.error("Error submitting assignment:", error);
-        res.status(500).json({ error: "Error submitting assignment" });
+        res.status(500).json({ error: "Error submitting assignment", details: error.message });
     }
 };
+
+
 
 // ------------------------------
 // 📌 Reminder Scheduler (Runs separately)

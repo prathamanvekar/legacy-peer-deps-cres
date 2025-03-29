@@ -2,16 +2,10 @@ const mongoose = require("mongoose");
 
 const courseSchema = new mongoose.Schema({
   courseId: { type: String, unique: true, required: true }, // ✅ Unique Course ID
-  title: { type: String, required: true }, // ✅ Course Title
+  title: { type: String, required: true },
   description: String,
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: "Trainer", required: true },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
-  assignments: [
-    {
-      assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment" }, // ✅ Store Assignment ID
-      title: { type: String, required: true } // ✅ Store Assignment Title
-    }
-  ],
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -73,42 +73,49 @@ exports.uploadResource = async (req, res) => {
 
 // ✅ Create an assignment
 
+
+// Utility function to generate a unique assignment ID
+function generateAssignmentId() {
+    const random = Math.floor(1000 + Math.random() * 9000); // 4-digit number
+    return `ASSIGN-${random}`;
+}
+
 exports.createAssignment = async (req, res) => {
     try {
-        const { courseId, title, description, dueDate } = req.body; // ✅ Include description
+        const { courseId, title, description, deadline } = req.body;
 
-        if (!courseId || !title || !description || !dueDate) {
+        if (!courseId || !title || !deadline) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
-        // ✅ Find the Course using courseId
+        // ✅ Step 1: Find the Course using courseId (e.g., "COURSE-6588")
         const course = await Course.findOne({ courseId });
 
         if (!course) {
             return res.status(404).json({ error: "Course not found" });
         }
 
-        // ✅ Find Trainer from Course
-        const trainer = await Trainer.findById(course.trainer);
-        if (!trainer) {
-            return res.status(404).json({ error: "Trainer not found" });
+        // ✅ Step 2: Generate a unique assignmentId
+        let assignmentId;
+        let exists = true;
+        while (exists) {
+            assignmentId = generateAssignmentId();
+            const existing = await Assignment.findOne({ assignmentId });
+            if (!existing) exists = false;
         }
 
-        // ✅ Create a new Assignment
+        // ✅ Step 3: Create Assignment
         const newAssignment = new Assignment({
+            assignmentId,                       // 🔹 Custom assignment ID
             title,
-            description, // ✅ Added description
-            deadline: new Date(dueDate), // ✅ Match with schema (deadline instead of dueDate)
-            course: course._id, // Store ObjectId reference
-            courseTitle: course.title, // ✅ Store course title
-            trainer: trainer._id, // ✅ Store trainer reference
+            description,
+            deadline,
+            course: course.courseId,            // "COURSE-xxxx"
+            courseTitle: course.title,          // Course title
+            trainer: course.trainer             // Reference to Trainer
         });
 
         await newAssignment.save();
-
-        // ✅ Step 3: Update Course Model (Add Assignment Title)
-        course.assignments.push({ assignmentId: newAssignment._id, title });
-        await course.save();
 
         res.status(201).json({ 
             message: "Assignment created successfully", 
@@ -117,9 +124,13 @@ exports.createAssignment = async (req, res) => {
 
     } catch (error) {
         console.error("Error creating assignment:", error);
-        res.status(500).json({ error: "Error creating assignment", details: error.message });
+        res.status(500).json({ 
+            error: "Error creating assignment", 
+            details: error.message 
+        });
     }
 };
+
 
 
 // ✅ View registered students in trainer's courses

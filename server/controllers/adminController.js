@@ -2,7 +2,7 @@ const Admin = require("../models/Admin");
 const Trainer = require("../models/Trainer");
 const Student = require("../models/Student");
 const Course = require("../models/Course");
-const Assignment = require("../models/Assignment");
+const Assignment = require("../models/assignment");
 
 // Add a trainer
 exports.addTrainer = async (req, res) => {
