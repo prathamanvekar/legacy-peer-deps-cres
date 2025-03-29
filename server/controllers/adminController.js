@@ -6,21 +6,32 @@ const Assignment = require("../models/Assignment");
 
 exports.addTrainer = async (req, res) => {
     try {
-        const { name, email, password, expertise } = req.body; // 🔄 Fix: include `expertise` in destructuring
-
-        if (!name || !email || !password || !expertise) {
-            return res.status(400).json({ error: "All fields are required" });
-        }
-
-        const newTrainer = new Trainer({ name, email, password, expertise });
-        await newTrainer.save();
-
-        res.status(201).json({ message: "Trainer added successfully", trainer: newTrainer });
+      console.log('🔹 Received request:', req.body); // ✅ Log request payload
+  
+      const { name, email, password, expertise, contactNumber } = req.body;
+  
+      if (!name || !email || !password || !expertise || !contactNumber) {
+        console.log('❌ Missing required fields:', { name, email, password, expertise, contactNumber });
+        return res.status(400).json({ message: 'All fields are required' });
+      }
+  
+      const existingTrainer = await Trainer.findOne({ email });
+      if (existingTrainer) {
+        console.log('❌ Trainer already exists:', email);
+        return res.status(400).json({ message: 'Trainer already exists' });
+      }
+  
+      const trainer = new Trainer({ name, email, password, expertise, contactNumber });
+      await trainer.save();
+  
+      console.log('✅ Trainer added successfully:', trainer);
+      res.status(201).json({ message: 'Trainer added successfully', trainer });
     } catch (error) {
-        console.error("🔥 Error in addTrainer:", error); // 🔥 Show real error
-        res.status(500).json({ error: "Error adding trainer", details: error.message });
+      console.error('❌ Error adding trainer:', error);
+      res.status(500).json({ message: 'Server Error', error: error.message });
     }
-};
+  };
+
 
 
 // Get total number of students

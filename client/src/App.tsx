@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 
 import Index from "./pages/Index";
+import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
@@ -15,6 +16,11 @@ import Profile from "./pages/Profile";
 import Trainers from "./pages/Trainers";
 import TrainerDetail from "./pages/TrainerDetail";
 import NotFound from "./pages/NotFound";
+import StudentDetail from "./pages/StudentDetail";
+import NewAssignment from "./pages/NewAssignment";
+import SubmitAssignment from '@/components/assignments/SubmitAssignment';
+import ViewSubmission from '@/components/assignments/ViewSumbission';
+
 
 const queryClient = new QueryClient();
 
@@ -27,14 +33,20 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/assignments" element={<Assignments />} />
+            <Route path="/assignments/new" element={<NewAssignment />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/trainers" element={<Trainers />} />
             <Route path="/trainers/:id" element={<TrainerDetail />} />
+            <Route path="/students/:id" element={<StudentDetail />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/view-submission" element={<ViewSubmission />} />
+            <Route path="/submit-assignment" element={<SubmitAssignment />} />
+
           </Routes>
         </BrowserRouter>
       </AuthProvider>

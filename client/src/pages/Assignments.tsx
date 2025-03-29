@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/ui/glass-card';
-import { FileText, Plus, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Plus, Calendar, CheckCircle } from 'lucide-react';
 import { Assignment, mockAssignments, mockCourses } from '@/utils/mockData';
 
 const Assignments = () => {
@@ -158,13 +157,24 @@ const Assignments = () => {
                   </div>
                   
                   <div className="flex flex-col gap-2">
+                    {/* 🔥 Added change: Handle View Submission & Submit Assignment */}
                     <button
-                      onClick={() => navigate(`/assignments/${assignment.id}`)}
+                      onClick={() => {
+                        if (user?.role === 'student') {
+                          if (studentSubmission?.status === 'submitted') {
+                            navigate(`../components/assignments/view-submission`); // 🔥 Redirect to View Submission
+                          } else {
+                            navigate(`../components/assignments/submit`); // 🔥 Redirect to Submit Assignment
+                          }
+                        } else {
+                          navigate(`/assignments/${assignment.id}`); // 🔥 Redirect to Assignment Details
+                        }
+                      }}
                       className="glass-button w-full md:w-auto"
                     >
                       {user?.role === 'student'
                         ? studentSubmission?.status === 'submitted'
-                          ? 'View Submission'
+                          ? 'View Submission' 
                           : 'Submit Assignment'
                         : 'View Details'}
                     </button>
@@ -183,28 +193,6 @@ const Assignments = () => {
               </GlassCard>
             );
           })}
-          
-          {filteredAssignments.length === 0 && (
-            <div className="text-center py-12">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h2 className="text-xl mb-2">No Assignments Available</h2>
-              <p className="text-gray-600 mb-6">
-                {user?.role === 'trainer'
-                  ? "You haven't created any assignments yet."
-                  : "There are no assignments available at the moment."}
-              </p>
-              
-              {(user?.role === 'admin' || user?.role === 'trainer') && (
-                <button 
-                  onClick={() => navigate('/assignments/new')}
-                  className="glass-button"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create First Assignment
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </DashboardLayout>

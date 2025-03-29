@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { mockTrainers, mockCourses } from '@/utils/mockData';
@@ -21,13 +21,8 @@ export default function TrainerDetail() {
   // Get courses for this trainer
   const trainerCourses = mockCourses.filter(course => course.trainerId === id);
 
-  useEffect(() => {
-    if (!trainer) {
-      navigate('/trainers');
-    }
-  }, [trainer, navigate]);
-
   if (!trainer) {
+    navigate('/trainers');
     return null;
   }
   

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Plus, Pencil } from 'lucide-react';
 import { mockTrainers } from '@/utils/mockData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { TrainerForm } from '@/components/trainers/TrainerForm';
 
 export default function Trainers() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [trainers] = useState(mockTrainers);
   const [formOpen, setFormOpen] = useState(false);

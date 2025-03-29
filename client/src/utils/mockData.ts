@@ -8,6 +8,8 @@ export interface Course {
   materials: Material[];
   createdAt: string;
   trainerId: string;
+  courseCode: string;  // Added this field
+  students: string[];  // Added this field
 }
 
 export interface Material {
@@ -55,6 +57,9 @@ export interface Trainer {
   email: string;
   specialization: string;
   courses: string[]; // course IDs
+  username?: string;  // Added this field
+  bio?: string;       // Added this field
+  contactNumber?: string;  // Added this field
 }
 
 // Mock Courses
@@ -91,6 +96,8 @@ export const mockCourses: Course[] = [
     ],
     createdAt: '2023-01-10',
     trainerId: '2',
+    courseCode: 'WEB101',  // Added this field
+    students: ['3'],        // Added this field
   },
   {
     id: '2',
@@ -116,6 +123,8 @@ export const mockCourses: Course[] = [
     ],
     createdAt: '2023-02-01',
     trainerId: '2',
+    courseCode: 'REACT201',  // Added this field
+    students: ['3'],         // Added this field
   },
 ];
 
@@ -171,5 +180,8 @@ export const mockTrainers: Trainer[] = [
     email: 'trainer@example.com',
     specialization: 'Web Development',
     courses: ['1', '2'],
+    username: 'trainer1',    // Added this field
+    bio: 'Experienced web development instructor with 5+ years in the industry',  // Added this field
+    contactNumber: '+1122334455',  // Added this field
   },
 ];

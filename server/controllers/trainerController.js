@@ -2,50 +2,40 @@ const Trainer = require("../models/Trainer");
 const Course = require("../models/Course");
 const Assignment = require("../models/Assignment");
 const Student = require("../models/Student");
-
-// ✅ Create a new course
+// ✅ Create a new course (No Trainer Lookup)
 exports.createCourse = async (req, res) => {
     try {
-        const { title, description, trainerName } = req.body;
+        console.log("Incoming request:", req.body);  // ✅ Log request data
 
-        if (!title || !description || !trainerName) {
-            return res.status(400).json({ error: "Title, description, and trainer name are required" });
+        const { courseId, title, description, trainerName } = req.body;
+
+        if (!courseId || !title || !description || !trainerName) {
+            return res.status(400).json({ error: "All fields are required" });
         }
 
-        // Find trainer by name
         const trainer = await Trainer.findOne({ name: trainerName });
 
         if (!trainer) {
             return res.status(404).json({ error: "Trainer not found" });
         }
 
-        // Generate a unique course ID
-        const courseId = `COURSE-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        // Create course with trainer ID
         const newCourse = new Course({
-            courseId, // ✅ Assigning the unique course ID
+            courseId,
             title,
             description,
             trainer: trainer._id
         });
 
         await newCourse.save();
-        res.status(201).json({ 
-            message: "Course created successfully", 
-            course: { 
-                id: newCourse._id, 
-                courseId: newCourse.courseId, 
-                title: newCourse.title, 
-                description: newCourse.description, 
-                trainerName 
-            } 
-        });
+        res.status(201).json({ message: "Course created successfully", course: newCourse });
+
     } catch (error) {
-        console.error("Error creating course:", error);
-        res.status(500).json({ error: "Error creating course", details: error.message });
+        console.error("Server error:", error);
+        res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
+
+
 
 
 // ✅ Upload a resource for a course

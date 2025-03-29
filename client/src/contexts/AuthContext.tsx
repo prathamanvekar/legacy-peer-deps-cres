@@ -14,6 +14,8 @@ export interface User {
   parentName?: string;
   parentContactNumber?: string;
   resume?: string;
+  specialization?: string; // For trainers
+  bio?: string; // For trainers
 }
 
 interface AuthContextType {
@@ -41,7 +43,9 @@ const mockUsers: User[] = [
     name: 'Trainer User',
     role: 'trainer',
     email: 'trainer@example.com',
-    avatar: 'https://i.pravatar.cc/150?img=2'
+    avatar: 'https://i.pravatar.cc/150?img=2',
+    specialization: 'Web Development',
+    bio: 'Experienced web development instructor with 5+ years of teaching experience.'
   },
   {
     id: '3',

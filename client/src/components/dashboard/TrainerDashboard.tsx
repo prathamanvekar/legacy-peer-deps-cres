@@ -1,14 +1,14 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
 import { mockAssignments, mockCourses, mockStudents } from '@/utils/mockData';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { CourseForm } from '@/components/courses/CourseForm';
 import { DashboardStats } from './DashboardStats';
 import { CoursesList } from './CoursesList';
 import { AssignmentsList } from './AssignmentsList';
+import { TrainerDashboardHeader } from './trainer/TrainerDashboardHeader';
+import { formatDate } from './trainer/trainerDashboardUtils';
 
 export function TrainerDashboard() {
   const { user } = useAuth();
@@ -25,39 +25,9 @@ export function TrainerDashboard() {
     assignment => trainerCourses.some(course => course.id === assignment.courseId)
   );
   
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-  
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-medium">Trainer Dashboard</h1>
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => setFormOpen(true)}
-            className="flex items-center gap-1"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            New Course
-          </Button>
-          <Button 
-            onClick={() => navigate('/assignments/new')}
-            className="flex items-center gap-1"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            New Assignment
-          </Button>
-        </div>
-      </div>
+      <TrainerDashboardHeader onCreateCourse={() => setFormOpen(true)} />
       
       <DashboardStats 
         coursesCount={trainerCourses.length}

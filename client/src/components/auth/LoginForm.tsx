@@ -1,113 +1,146 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { GlassButton, GlassCard } from '@/components/ui/glass-card';
-import { toast } from 'sonner';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { GlassCard } from '@/components/ui/glass-card';
+
+// Form validation schema
+const formSchema = z.object({
+  username: z.string().min(1, { message: 'Username is required' }),
+  password: z.string().min(1, { message: 'Password is required' }),
+});
+
+type LoginFormValues = z.infer<typeof formSchema>;
 
 export function LoginForm() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!username || !password) {
-      toast.error('Please enter both username and password');
-      return;
-    }
-    
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
+  
+  const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     
     try {
-      const success = await login(username, password);
+      const success = await login(values.username, values.password);
       
       if (success) {
-        toast.success('Logged in successfully');
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome to the CloudLectures portal.',
+        });
         navigate('/dashboard');
       } else {
-        toast.error('Invalid username or password');
+        toast({
+          title: 'Login Failed',
+          description: 'Invalid username or password.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      console.error('Error logging in:', error);
+      toast({
+        title: 'Login Error',
+        description: 'An error occurred while logging in.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <GlassCard className="w-full max-w-md mx-auto p-8">
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-medium mb-1">CloudLectures</h2>
-        <p className="text-gray-600">Sign in to your account</p>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label 
-            htmlFor="username" 
-            className="block text-sm font-medium mb-1"
-          >
-            Username
-          </label>
-          <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin, trainer, or student"
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            disabled={isLoading}
-          />
-        </div>
+    <GlassCard className="w-full">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">CloudLectures</CardTitle>
+        <CardDescription className="text-center">
+          Enter your credentials to access the portal
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your username" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter your password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+        </Form>
         
-        <div>
-          <label 
-            htmlFor="password" 
-            className="block text-sm font-medium mb-1"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Any password works for demo"
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            disabled={isLoading}
-          />
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Use these demo accounts:
+          </p>
+          <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+            <div className="p-1 border rounded">
+              <p className="font-medium">Admin</p>
+              <p>username: admin</p>
+              <p>password: any</p>
+            </div>
+            <div className="p-1 border rounded">
+              <p className="font-medium">Trainer</p>
+              <p>username: trainer</p>
+              <p>password: any</p>
+            </div>
+            <div className="p-1 border rounded">
+              <p className="font-medium">Student</p>
+              <p>username: student</p>
+              <p>password: any</p>
+            </div>
+          </div>
         </div>
-        
-        <button
-          type="submit"
-          className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center">
-              <span className="loader mr-2"></span>
-              Signing in...
-            </span>
-          ) : (
-            'Sign in'
-          )}
-        </button>
-      </form>
-      
-      <div className="mt-6 pt-5 border-t border-gray-200 text-sm text-gray-500 text-center">
-        <p>
-          Demo accounts: <span className="font-medium">admin</span>, <span className="font-medium">trainer</span>, <span className="font-medium">student</span>
-        </p>
-        <p className="mt-1">
-          Any password will work for this demo
-        </p>
-      </div>
+      </CardContent>
+      <CardFooter className="flex flex-col space-y-2">
+        <div className="text-sm text-center">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-primary hover:underline">
+            Sign up as a student
+          </Link>
+        </div>
+      </CardFooter>
     </GlassCard>
   );
 }
